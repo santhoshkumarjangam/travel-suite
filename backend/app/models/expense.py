@@ -9,7 +9,7 @@ class Expense(Base):
     __tablename__ = "expenses"
 
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    trip_id = Column(UUID(as_uuid=True), ForeignKey("trips.id"), nullable=False)
+    trip_id = Column(UUID(as_uuid=True), ForeignKey("expense_trips.id"), nullable=False)
     payer_id = Column(UUID(as_uuid=True), ForeignKey("users.id"), nullable=False)
     amount = Column(Numeric(10, 2), nullable=False)
     currency = Column(String(3), default="USD")
@@ -19,4 +19,4 @@ class Expense(Base):
     split_details = Column(JSON, nullable=True)
     type = Column(String, default="expense") # expense, income, settled
     
-    trip = relationship("Trip", back_populates="expenses")
+    trip = relationship("ExpenseTrip", back_populates="expenses")

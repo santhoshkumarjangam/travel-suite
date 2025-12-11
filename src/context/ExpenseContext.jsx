@@ -14,7 +14,13 @@ export const ExpenseProvider = ({ children }) => {
         if (!tripId) return;
         try {
             const response = await expensesApi.getByTrip(tripId);
-            setTransactions(response.data);
+            // Map backend fields to frontend fields
+            const mappedTransactions = response.data.map(tx => ({
+                ...tx,
+                collectionId: tx.trip_id,
+                debtor: tx.split_details?.debtor || null
+            }));
+            setTransactions(mappedTransactions);
         } catch (error) {
             console.error("Failed to load expenses", error);
         }
@@ -94,7 +100,7 @@ export const ExpenseProvider = ({ children }) => {
 
     const value = {
         transactions,
-
+        currency: '₹', // Default currency
         addTransaction,
         deleteTransaction,
         editTransaction,

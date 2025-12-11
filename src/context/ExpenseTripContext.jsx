@@ -16,7 +16,7 @@ export const ExpenseTripProvider = ({ children }) => {
         const fetchExpenseTrips = async () => {
             if (currentUser) {
                 try {
-                    const token = localStorage.getItem('token');
+                    const token = sessionStorage.getItem('token');
                     const response = await axios.get(`${baseURL}/expense-trips/`, {
                         headers: { Authorization: `Bearer ${token}` }
                     });
@@ -33,7 +33,7 @@ export const ExpenseTripProvider = ({ children }) => {
 
     const createExpenseTrip = async (name, description = null, budget = 0.0) => {
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             const response = await axios.post(
                 `${baseURL}/expense-trips/`,
                 { name, description, budget },
@@ -50,7 +50,7 @@ export const ExpenseTripProvider = ({ children }) => {
 
     const deleteExpenseTrip = async (id) => {
         try {
-            const token = localStorage.getItem('token');
+            const token = sessionStorage.getItem('token');
             await axios.delete(`${baseURL}/expense-trips/${id}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });

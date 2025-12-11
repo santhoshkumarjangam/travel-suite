@@ -4,7 +4,7 @@ from typing import List
 from uuid import UUID
 from ..database import get_db
 from ..models.expense import Expense
-from ..models.trip import TripMember
+from ..models.expense_trip import ExpenseTripMember
 from ..models.user import User
 from ..schemas.expense import ExpenseCreate, ExpenseResponse, ExpenseUpdate
 from ..deps import get_current_user
@@ -14,9 +14,9 @@ router = APIRouter(prefix="/expenses", tags=["Expenses"])
 @router.post("/", response_model=ExpenseResponse)
 def create_expense(expense: ExpenseCreate, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     # 1. Verify User is Member of Trip
-    member = db.query(TripMember).filter(
-        TripMember.trip_id == expense.trip_id,
-        TripMember.user_id == current_user.id
+    member = db.query(ExpenseTripMember).filter(
+        ExpenseTripMember.trip_id == expense.trip_id,
+        ExpenseTripMember.user_id == current_user.id
     ).first()
     
     if not member:
@@ -61,9 +61,9 @@ def update_expense(expense_id: UUID, expense_update: ExpenseUpdate, db: Session 
 @router.get("/trip/{trip_id}", response_model=List[ExpenseResponse])
 def get_trip_expenses(trip_id: UUID, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     # 1. Verify User is Member
-    member = db.query(TripMember).filter(
-        TripMember.trip_id == trip_id,
-        TripMember.user_id == current_user.id
+    member = db.query(ExpenseTripMember).filter(
+        ExpenseTripMember.trip_id == trip_id,
+        ExpenseTripMember.user_id == current_user.id
     ).first()
     
     if not member:

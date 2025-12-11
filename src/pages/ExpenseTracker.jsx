@@ -21,6 +21,7 @@ const ExpenseTracker = () => {
     const [editingId, setEditingId] = useState(null);
     const [newTripName, setNewTripName] = useState('');
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [deleteTransactionId, setDeleteTransactionId] = useState(null);
     const [isTripDropdownOpen, setIsTripDropdownOpen] = useState(false);
     const [showCreateTripModal, setShowCreateTripModal] = useState(false);
     const [errors, setErrors] = useState({});
@@ -270,10 +271,10 @@ const ExpenseTracker = () => {
         setShowAddModal(true);
     };
 
-    const handleCreateTrip = (e) => {
+    const handleCreateTrip = async (e) => {
         e.preventDefault();
         if (newTripName.trim()) {
-            const newTrip = addTrip(newTripName.trim(), null, null, 'economiq');
+            const newTrip = await addTrip(newTripName.trim(), null, 0.0);
             setActiveTripId(newTrip.id);
             setNewTripName('');
             setShowCreateTripModal(false);
@@ -281,9 +282,10 @@ const ExpenseTracker = () => {
         }
     };
 
-    const handleDeleteTrip = () => {
+
+    const handleDeleteTrip = async () => {
         if (activeTripId && activeTripId !== 'all') {
-            deleteTrip(activeTripId);
+            await deleteTrip(activeTripId);
             setActiveTripId('all');
             setShowDeleteConfirm(false);
         }
@@ -302,7 +304,7 @@ const ExpenseTracker = () => {
     return (
         <div className="h-screen overflow-hidden bg-gray-50 flex flex-col font-sans">
             {/* Header */}
-            <header className="bg-white border-b border-gray-200 sticky top-0 z-10 px-4 py-3 md:px-6 md:py-4 flex items-center justify-between">
+            <header className="bg-white border-b border-gray-200 sticky top-0 z-20 px-4 py-3 md:px-6 md:py-4 flex items-center justify-between">
                 <div className="flex items-center gap-4">
                     <NavLink to="/" className="flex items-center gap-2 p-2 -ml-2 hover:bg-gray-100 rounded-lg transition-colors group">
                         <Home size={20} className="text-gray-500 group-hover:text-black transition-colors" />
@@ -331,55 +333,53 @@ const ExpenseTracker = () => {
                 </div>
 
                 {/* Trip Context Switcher (Custom Dropdown) */}
-                <div className="flex items-center gap-2 relative">
+                <div className="flex items-center gap-1.5 sm:gap-2 relative">
                     <button
                         onClick={handleOpenAddModal}
-                        className="flex items-center gap-2 px-4 py-2 bg-black text-white rounded-xl hover:bg-gray-800 transition-all font-bold text-sm shadow-sm"
+                        className="hidden md:flex items-center gap-1 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-black text-white rounded-lg sm:rounded-xl hover:bg-gray-800 transition-all font-bold text-xs sm:text-sm shadow-sm"
                     >
-                        <Plus size={18} />
+                        <Plus size={16} className="sm:w-[18px] sm:h-[18px]" />
                         <span className="hidden md:inline">Add Expense</span>
                     </button>
 
                     <button
                         onClick={handleExport}
                         disabled={filteredTransactions.length === 0}
-                        className={`flex items-center gap-2 px-4 py-2 bg-gray-50 text-gray-600 rounded-xl transition-colors font-bold text-sm ${filteredTransactions.length === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100 hover:text-black"}`}
+                        className={`flex items-center gap-1 sm:gap-2 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 bg-gray-50 text-gray-600 rounded-lg sm:rounded-xl transition-colors font-bold text-xs sm:text-sm ${filteredTransactions.length === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100 hover:text-black"}`}
                     >
-                        <Download size={18} />
+                        <Download size={16} className="sm:w-[18px] sm:h-[18px]" />
                         <span className="hidden md:inline">Export Data</span>
                     </button>
                     <div className="relative">
                         <button
                             onClick={() => setIsTripDropdownOpen(!isTripDropdownOpen)}
-                            className="flex items-center gap-2 bg-white border border-gray-200 px-4 py-2 rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm min-w-[100px] md:min-w-[160px] justify-between"
+                            className="flex items-center gap-1 sm:gap-2 bg-white border border-gray-200 px-2.5 sm:px-3 md:px-4 py-1.5 sm:py-2 rounded-lg sm:rounded-xl text-xs sm:text-sm font-bold text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm min-w-[80px] sm:min-w-[100px] md:min-w-[160px] justify-between"
                         >
-                            <div className="flex items-center gap-2">
-                                {activeTripId === "all" ? <Globe size={16} className="text-gray-400" /> : <Briefcase size={16} className="text-indigo-600" />}
-                                <span className="truncate max-w-[80px] md:max-w-[120px]">
+                            <div className="flex items-center gap-1 sm:gap-2 min-w-0">
+                                {activeTripId === "all" ? <Globe size={14} className="flex-shrink-0 text-gray-400 sm:w-4 sm:h-4" /> : <Briefcase size={14} className="flex-shrink-0 text-indigo-600 sm:w-4 sm:h-4" />}
+                                <span className="truncate max-w-[50px] sm:max-w-[80px] md:max-w-[120px]">
                                     {activeTripId === "all" ? "No Trips Created" : getCollectionName(activeTripId)}
                                 </span>
                             </div>
-                            <ChevronDown size={14} className={`text-gray-400 transition-transform ${isTripDropdownOpen ? "rotate-180" : ""}`} />
+                            <ChevronDown size={12} className={`flex-shrink-0 text-gray-400 transition-transform sm:w-[14px] sm:h-[14px] ${isTripDropdownOpen ? "rotate-180" : ""}`} />
                         </button>
 
                         {/* Dropdown Menu */}
                         {isTripDropdownOpen && (
-                            <div className="fixed md:absolute top-[72px] md:top-full left-0 right-0 md:left-auto md:right-0 mx-4 md:mx-0 md:mt-2 md:w-64 bg-black border border-gray-800 rounded-2xl shadow-2xl z-[100] overflow-hidden">
+                            <div className="fixed md:absolute top-[72px] md:top-full left-0 right-0 md:left-auto md:right-0 mx-4 md:mx-0 md:mt-2 md:w-64 bg-black border border-gray-800 rounded-2xl shadow-2xl z-[160] overflow-hidden">
                                 <div className="p-1">
-
-
                                     <div className="max-h-64 overflow-y-auto space-y-1">
-                                        {collections.filter(c => c.source === "economiq" || c.source === "galleriq").map(col => (
+                                        {collections.map(col => (
                                             <button
                                                 key={col.id}
                                                 onClick={() => { setActiveTripId(col.id); setIsTripDropdownOpen(false); }}
-                                                className={`w-full flex items-center justify-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${activeTripId === col.id ? "bg-white text-black" : "hover:bg-gray-800 text-white"}`}
+                                                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl transition-colors ${activeTripId === col.id ? "bg-white text-black" : "hover:bg-gray-800 text-white"}`}
                                             >
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activeTripId === col.id ? "bg-black" : "bg-gray-800"}`}>
-                                                    <Briefcase size={16} className={activeTripId === col.id ? "text-white" : "text-gray-400"} />
+                                                <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${activeTripId === col.id ? "bg-black" : "bg-gray-800"}`}>
+                                                    <Briefcase size={14} className={activeTripId === col.id ? "text-white" : "text-gray-400"} />
                                                 </div>
-                                                <span className="font-medium text-center flex-1">{col.name}</span>
-                                                {activeTripId === col.id && <Check size={14} />}
+                                                <span className="font-medium text-left flex-1 truncate">{col.name}</span>
+                                                {activeTripId === col.id && <Check size={14} className="flex-shrink-0" />}
                                             </button>
                                         ))}
                                     </div>
@@ -387,7 +387,7 @@ const ExpenseTracker = () => {
                                 <div className="bg-gray-900 p-2 border-t border-gray-800">
                                     <button
                                         onClick={() => { setShowCreateTripModal(true); setIsTripDropdownOpen(false); }}
-                                        className="w-full flex items-center justify-center gap-2 p-2.5 text-sm font-bold text-gray-400 hover:text-white transition-colors"
+                                        className="w-full flex items-center justify-center gap-2 px-3 py-2 text-sm font-bold text-gray-400 hover:text-white transition-colors"
                                     >
                                         <Plus size={16} />
                                         <span>Create New Trip</span>
@@ -398,17 +398,17 @@ const ExpenseTracker = () => {
 
                         {/* Backdrop to close */}
                         {isTripDropdownOpen && (
-                            <div className="fixed inset-0 z-[90]" onClick={() => setIsTripDropdownOpen(false)} />
+                            <div className="fixed inset-0 z-[150]" onClick={() => setIsTripDropdownOpen(false)} />
                         )}
                     </div>
 
                     {activeTripId !== "all" && (
                         <button
                             onClick={() => setShowDeleteConfirm(true)}
-                            className="p-2 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 hover:text-red-600 transition-colors"
+                            className="p-1.5 sm:p-2 bg-red-50 text-red-500 rounded-lg sm:rounded-xl hover:bg-red-100 hover:text-red-600 transition-colors"
                             title="Delete this trip"
                         >
-                            <Trash2 size={18} />
+                            <Trash2 size={16} className="sm:w-[18px] sm:h-[18px]" />
                         </button>
                     )}
                 </div>
@@ -431,59 +431,68 @@ const ExpenseTracker = () => {
                 </div>
             </div>
 
+            {/* Floating Action Button (Mobile Only) */}
+            <button
+                onClick={handleOpenAddModal}
+                className="md:hidden fixed bottom-6 right-6 w-14 h-14 bg-black text-white rounded-full shadow-lg flex items-center justify-center z-50 active:scale-95 transition-transform"
+                aria-label="Add Expense"
+            >
+                <Plus size={24} />
+            </button>
+
 
             <main className="flex-1 max-w-4xl mx-auto w-full flex flex-col overflow-hidden relative">
                 {view === 'dashboard' ? (
                     <>
                         {/* Balance Cards */}
-                        <div className="flex-none grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3 p-4 md:p-6 pb-2 md:pb-6 z-10">
-                            <div className="min-w-0 bg-black text-white p-4 md:p-6 rounded-2xl shadow-lg shadow-black/5 flex items-center justify-between">
+                        <div className="flex-none grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 p-3 sm:p-4 md:p-6 pb-2 sm:pb-3 md:pb-6 z-10">
+                            <div className="min-w-0 bg-black text-white p-3 sm:p-4 md:p-6 rounded-xl sm:rounded-2xl shadow-lg shadow-black/5 flex items-center justify-between">
                                 <div>
-                                    <p className="text-gray-400 text-sm font-medium mb-1">Total Balance</p>
-                                    <h2 className="text-lg md:text-2xl font-bold tracking-tight">{currency}{getFilteredBalance().toLocaleString()}</h2>
+                                    <p className="text-gray-400 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1">Total Balance</p>
+                                    <h2 className="text-base sm:text-lg md:text-2xl font-bold tracking-tight">{currency}{getFilteredBalance().toLocaleString()}</h2>
                                 </div>
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-gray-800 rounded-full flex items-center justify-center text-white">
-                                    <Wallet size={20} />
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-gray-800 rounded-full flex items-center justify-center text-white">
+                                    <Wallet size={16} className="sm:w-5 sm:h-5" />
                                 </div>
                             </div>
 
-                            <div className="min-w-0 bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                            <div className="min-w-0 bg-white p-3 sm:p-4 md:p-6 rounded-xl sm:rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
                                 <div>
-                                    <p className="text-gray-500 text-sm font-medium mb-1">Income</p>
-                                    <h3 className="text-lg md:text-2xl font-bold text-emerald-600">+{currency}{getFilteredIncome().toLocaleString()}</h3>
+                                    <p className="text-gray-500 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1">Income</p>
+                                    <h3 className="text-base sm:text-lg md:text-2xl font-bold text-emerald-600">+{currency}{getFilteredIncome().toLocaleString()}</h3>
                                 </div>
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
-                                    <TrendingUp size={20} />
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600">
+                                    <TrendingUp size={16} className="sm:w-5 sm:h-5" />
                                 </div>
                             </div>
 
-                            <div className="min-w-0 bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
+                            <div className="min-w-0 bg-white p-3 sm:p-4 md:p-6 rounded-xl sm:rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
                                 <div>
-                                    <p className="text-gray-500 text-sm font-medium mb-1">Expenses</p>
-                                    <h3 className="text-lg md:text-2xl font-bold text-red-600">-{currency}{getFilteredExpense().toLocaleString()}</h3>
+                                    <p className="text-gray-500 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1">Expenses</p>
+                                    <h3 className="text-base sm:text-lg md:text-2xl font-bold text-red-600">-{currency}{getFilteredExpense().toLocaleString()}</h3>
                                 </div>
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-red-100 rounded-full flex items-center justify-center text-red-600">
-                                    <TrendingDown size={20} />
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-red-100 rounded-full flex items-center justify-center text-red-600">
+                                    <TrendingDown size={16} className="sm:w-5 sm:h-5" />
                                 </div>
                             </div>
 
                             <div
                                 onClick={() => setShowDebtModal(true)}
-                                className="min-w-0 bg-white p-4 md:p-6 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow group"
+                                className="min-w-0 bg-white p-3 sm:p-4 md:p-6 rounded-xl sm:rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow group"
                             >
                                 <div>
-                                    <p className="text-gray-500 text-sm font-medium mb-1 group-hover:text-orange-600 transition-colors">Owed to you</p>
-                                    <h3 className="text-lg md:text-2xl font-bold text-orange-600">{currency}{getFilteredLent().toLocaleString()}</h3>
-                                    <p className="text-[10px] uppercase font-bold text-orange-400 mt-1 flex items-center gap-1 ">View Details <ArrowRight size={12} /></p>
+                                    <p className="text-gray-500 text-xs sm:text-sm font-medium mb-0.5 sm:mb-1 group-hover:text-orange-600 transition-colors">Owed to you</p>
+                                    <h3 className="text-base sm:text-lg md:text-2xl font-bold text-orange-600">{currency}{getFilteredLent().toLocaleString()}</h3>
+                                    <p className="text-[9px] sm:text-[10px] uppercase font-bold text-orange-400 mt-0.5 sm:mt-1 flex items-center gap-1">View Details <ArrowRight size={10} className="sm:w-3 sm:h-3" /></p>
                                 </div>
-                                <div className="w-8 h-8 md:w-10 md:h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform">
-                                    <span className="text-lg">🤝</span>
+                                <div className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 group-hover:scale-110 transition-transform">
+                                    <span className="text-base sm:text-lg">🤝</span>
                                 </div>
                             </div>
                         </div>
 
                         {/* Recent Transactions */}
-                        <div className="flex-1 overflow-y-auto px-6 pb-24 min-h-0">
+                        <div className="flex-1 overflow-y-auto px-3 sm:px-4 md:px-6 pb-20 sm:pb-24 min-h-0">
                             <h3 className="text-lg font-bold text-gray-900 mb-4 sticky top-0 bg-gray-50 py-2 z-10">Recent Transactions</h3>
                             {filteredTransactions.length === 0 ? (
                                 <div className="text-center py-20 bg-white rounded-2xl border border-dashed border-gray-200">
@@ -516,7 +525,7 @@ const ExpenseTracker = () => {
                                                 initial={{ opacity: 0, y: 20 }}
                                                 animate={{ opacity: 1, y: 0 }}
                                                 exit={{ opacity: 0, x: -20 }}
-                                                className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md transition-all flex items-center justify-between group"
+                                                className="bg-white p-3 sm:p-4 rounded-xl border border-gray-100 shadow-sm md:hover:shadow-md transition-all flex items-center justify-between group"
                                             >
                                                 <div className="flex items-center gap-3 overflow-hidden"><div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center text-lg ${cat.color}`}>
                                                     {isLent ? '🤝' : cat.icon}
@@ -539,13 +548,13 @@ const ExpenseTracker = () => {
                                                 </span>
                                                     <button
                                                         onClick={() => handleEdit(t)}
-                                                        className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded-lg transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                                                        className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center text-gray-400 md:hover:text-blue-500 md:hover:bg-blue-50 rounded-lg transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
                                                     >
                                                         <Edit2 size={16} />
                                                     </button>
                                                     <button
-                                                        onClick={() => deleteTransaction(t.id)}
-                                                        className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                                                        onClick={() => setDeleteTransactionId(t.id)}
+                                                        className="w-7 h-7 md:w-8 md:h-8 flex items-center justify-center text-gray-400 md:hover:text-red-500 md:hover:bg-red-50 rounded-lg transition-colors opacity-100 md:opacity-0 md:group-hover:opacity-100"
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
@@ -777,7 +786,7 @@ const ExpenseTracker = () => {
                                                             category: "Repayment",
                                                             type: "settled",
                                                             debtor: name,
-                                                            collectionId: ""
+                                                            collectionId: activeTripId
                                                         });
                                                         setConfirmSettle(null);
                                                     }}
@@ -807,6 +816,40 @@ const ExpenseTracker = () => {
                         <div className="mt-6 pt-6 border-t border-gray-100 flex justify-between items-center bg-white">
                             <span className="text-gray-500 font-medium">Total Pending</span>
                             <span className="text-xl font-bold text-gray-900">{currency}{getFilteredLent().toLocaleString()}</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Delete Transaction Confirmation Modal */}
+            {deleteTransactionId && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[200] p-4">
+                    <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl">
+                        <div className="flex items-center gap-3 mb-4">
+                            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                                <Trash2 size={24} className="text-red-600" />
+                            </div>
+                            <div>
+                                <h3 className="font-bold text-lg text-gray-900">Delete Transaction?</h3>
+                                <p className="text-sm text-gray-500">This action cannot be undone</p>
+                            </div>
+                        </div>
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => setDeleteTransactionId(null)}
+                                className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-xl font-medium hover:bg-gray-200 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={() => {
+                                    deleteTransaction(deleteTransactionId);
+                                    setDeleteTransactionId(null);
+                                }}
+                                className="flex-1 px-4 py-2.5 bg-red-600 text-white rounded-xl font-medium hover:bg-red-700 transition-colors"
+                            >
+                                Delete
+                            </button>
                         </div>
                     </div>
                 </div>

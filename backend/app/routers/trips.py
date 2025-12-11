@@ -111,19 +111,41 @@ def join_trip(join_data: TripJoin, db: Session = Depends(get_db), current_user: 
         TripMember.user_id == current_user.id
     ).first()
     
-    if existing_member:
-        return trip # Already joined, just return it
+    if not existing_member:
+        # Add member
+        new_member = TripMember(
+            trip_id=trip.id,
+            user_id=current_user.id,
+            role="member"
+        )
+        db.add(new_member)
+        db.commit()
     
-    # Add member
-    new_member = TripMember(
-        trip_id=trip.id,
-        user_id=current_user.id,
-        role="member"
-    )
-    db.add(new_member)
-    db.commit()
+    # Reload trip with members and user data
+    trip_with_members = db.query(Trip).options(
+        joinedload(Trip.members).joinedload(TripMember.user)
+    ).filter(Trip.id == trip.id).first()
     
-    return trip
+    # Format response
+    return {
+        "id": trip_with_members.id,
+        "name": trip_with_members.name,
+        "description": trip_with_members.description,
+        "cover_photo_url": trip_with_members.cover_photo_url,
+        "join_code": trip_with_members.join_code,
+        "created_at": trip_with_members.created_at,
+        "created_by": trip_with_members.created_by,
+        "members": [
+            {
+                "user_id": m.user_id,
+                "name": m.user.name,
+                "email": m.user.email,
+                "role": m.role,
+                "joined_at": m.joined_at
+            }
+            for m in trip_with_members.members
+        ]
+    }
 
 @router.get("/{trip_id}", response_model=TripResponse)
 def get_trip_details(trip_id: str, db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):

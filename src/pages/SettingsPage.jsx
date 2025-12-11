@@ -195,8 +195,8 @@ const SettingsPage = () => {
                                     <button
                                         onClick={() => handleThemeChange('light')}
                                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${theme === 'light'
-                                                ? 'bg-blue-600 text-white shadow-sm'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            ? 'bg-blue-600 text-white shadow-sm'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                             }`}
                                     >
                                         <Sun size={16} className="inline mr-1" /> Light
@@ -204,8 +204,8 @@ const SettingsPage = () => {
                                     <button
                                         onClick={() => handleThemeChange('dark')}
                                         className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${theme === 'dark'
-                                                ? 'bg-blue-600 text-white shadow-sm'
-                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            ? 'bg-blue-600 text-white shadow-sm'
+                                            : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                                             }`}
                                     >
                                         <Moon size={16} className="inline mr-1" /> Dark
@@ -313,20 +313,6 @@ const SettingsPage = () => {
                     </div>
                 </section>
 
-                {/* Account Actions */}
-                <section>
-                    <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-6">
-                        <button
-                            onClick={handleLogout}
-                            className="flex items-center gap-3 text-gray-700 hover:text-black font-medium transition-colors w-full group"
-                        >
-                            <div className="p-2 bg-gray-100 rounded-lg group-hover:bg-gray-200 transition-colors">
-                                <LogOut size={18} />
-                            </div>
-                            <span>Sign Out</span>
-                        </button>
-                    </div>
-                </section>
 
                 {/* Danger Zone */}
                 <section>

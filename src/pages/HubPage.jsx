@@ -1,10 +1,31 @@
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, CreditCard, ArrowRight, User, Settings as SettingsIcon } from 'lucide-react';
+import { Camera, CreditCard, ArrowRight, User, Settings as SettingsIcon, LogOut, ChevronDown } from 'lucide-react';
 import { usePhotos } from '../context/PhotoContext';
 
 const HubPage = () => {
     const navigate = useNavigate();
-    const { currentUser } = usePhotos();
+    const { currentUser, logout } = usePhotos();
+    const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+    const userMenuRef = useRef(null);
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+                setIsUserMenuOpen(false);
+            }
+        };
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleLogout = () => {
+        logout();
+        navigate('/login');
+        setIsUserMenuOpen(false);
+    };
 
     const apps = [
         {
@@ -39,10 +60,6 @@ const HubPage = () => {
                         <span className="font-bold text-xl tracking-tight text-gray-900">Centriq</span>
                     </div>
                     <div className="flex items-center gap-3">
-                        <div className="text-right hidden sm:block">
-                            <p className="text-sm font-medium text-gray-900">{currentUser?.name}</p>
-                            <p className="text-xs text-gray-500">Member</p>
-                        </div>
                         <button
                             onClick={() => navigate('/settings')}
                             className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 hover:bg-gray-200 transition-colors"
@@ -50,8 +67,36 @@ const HubPage = () => {
                         >
                             <SettingsIcon size={20} />
                         </button>
-                        <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
-                            <User size={20} />
+
+                        {/* User Profile Dropdown */}
+                        <div className="relative" ref={userMenuRef}>
+                            <button
+                                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                                className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 transition-colors"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600">
+                                    {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'U'}
+                                </div>
+                                <span className="hidden sm:block text-sm font-medium text-gray-900">{currentUser?.name}</span>
+                                <ChevronDown size={16} className={`text-gray-400 transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
+                            </button>
+
+                            {/* Dropdown Menu */}
+                            {isUserMenuOpen && (
+                                <div className="absolute top-full right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+                                    <div className="px-4 py-3 border-b border-gray-100">
+                                        <p className="text-sm font-medium text-gray-900">{currentUser?.name}</p>
+                                        <p className="text-xs text-gray-500">{currentUser?.email}</p>
+                                    </div>
+                                    <button
+                                        onClick={handleLogout}
+                                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
+                                    >
+                                        <LogOut size={16} />
+                                        Logout
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
