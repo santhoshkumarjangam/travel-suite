@@ -83,7 +83,7 @@ const UploadPage = () => {
                     {/* User Identity Banner */}
                     <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
-                            {currentUser?.name?.charAt(0) || 'U'}
+                            {currentUser?.name?.charAt(0)}
                         </div>
                         <div>
                             <p className="text-sm text-blue-900 font-medium">Uploading as {currentUser?.name}</p>

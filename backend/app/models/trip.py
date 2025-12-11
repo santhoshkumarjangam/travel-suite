@@ -17,9 +17,9 @@ class Trip(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
-    members = relationship("TripMember", back_populates="trip")
-    expenses = relationship("Expense", back_populates="trip")
-    photos = relationship("Photo", back_populates="trip")
+    members = relationship("TripMember", back_populates="trip", cascade="all, delete-orphan")
+    expenses = relationship("Expense", back_populates="trip", cascade="all, delete-orphan")
+    photos = relationship("Photo", back_populates="trip", cascade="all, delete-orphan")
 
 class TripMember(Base):
     __tablename__ = "trip_members"
@@ -30,3 +30,4 @@ class TripMember(Base):
     joined_at = Column(DateTime(timezone=True), server_default=func.now())
 
     trip = relationship("Trip", back_populates="members")
+    user = relationship("User")

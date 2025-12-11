@@ -4,13 +4,13 @@ import { NavLink } from 'react-router-dom';
 import * as XLSX from 'xlsx';
 import { Wallet, Download, ArrowLeft, Home, ArrowRight, Plus, DollarSign, TrendingUp, TrendingDown, Trash2, Calendar, Tag, MapPin, Edit2, Globe, Briefcase, ChevronDown, Check } from 'lucide-react';
 import { useExpenses } from '../context/ExpenseContext';
-import { useTrips } from '../context/TripContext';
+import { useExpenseTrips } from '../context/ExpenseTripContext';
 import { usePhotos } from '../context/PhotoContext';
 import ExpenseAnalytics from '../components/ExpenseAnalytics';
 
 const ExpenseTracker = () => {
     const { transactions, currency, addTransaction, deleteTransaction, editTransaction, loadExpenses } = useExpenses();
-    const { trips: collections, addTrip, deleteTrip } = useTrips();
+    const { expenseTrips: collections, createExpenseTrip: addTrip, deleteExpenseTrip: deleteTrip } = useExpenseTrips();
     const { currentUser } = usePhotos();
     const [showAddModal, setShowAddModal] = useState(false);
     const [showDebtModal, setShowDebtModal] = useState(false);
@@ -364,7 +364,7 @@ const ExpenseTracker = () => {
 
                         {/* Dropdown Menu */}
                         {isTripDropdownOpen && (
-                            <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-gray-100 rounded-2xl shadow-xl z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                            <div className="fixed md:absolute top-[72px] md:top-full left-0 right-0 md:left-auto md:right-0 mx-4 md:mx-0 md:mt-2 md:w-64 bg-black border border-gray-800 rounded-2xl shadow-2xl z-[100] overflow-hidden">
                                 <div className="p-1">
 
 
@@ -373,24 +373,24 @@ const ExpenseTracker = () => {
                                             <button
                                                 key={col.id}
                                                 onClick={() => { setActiveTripId(col.id); setIsTripDropdownOpen(false); }}
-                                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${activeTripId === col.id ? "bg-indigo-50 text-indigo-700" : "hover:bg-gray-50 text-gray-700"}`}
+                                                className={`w-full flex items-center justify-center gap-3 px-3 py-2.5 rounded-xl transition-colors ${activeTripId === col.id ? "bg-white text-black" : "hover:bg-gray-800 text-white"}`}
                                             >
-                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activeTripId === col.id ? "bg-white" : "bg-gray-100"}`}>
-                                                    <Briefcase size={16} className={activeTripId === col.id ? "text-indigo-600" : "text-gray-500"} />
+                                                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activeTripId === col.id ? "bg-black" : "bg-gray-800"}`}>
+                                                    <Briefcase size={16} className={activeTripId === col.id ? "text-white" : "text-gray-400"} />
                                                 </div>
-                                                <span className="font-medium flex-1 text-left truncate">{col.name}</span>
+                                                <span className="font-medium text-center flex-1">{col.name}</span>
                                                 {activeTripId === col.id && <Check size={14} />}
                                             </button>
                                         ))}
                                     </div>
                                 </div>
-                                <div className="bg-gray-50 p-2 border-t border-gray-100">
+                                <div className="bg-gray-900 p-2 border-t border-gray-800">
                                     <button
                                         onClick={() => { setShowCreateTripModal(true); setIsTripDropdownOpen(false); }}
-                                        className="w-full flex items-center justify-center gap-2 p-2 text-xs font-bold text-gray-500 hover:text-indigo-600 transition-colors"
+                                        className="w-full flex items-center justify-center gap-2 p-2.5 text-sm font-bold text-gray-400 hover:text-white transition-colors"
                                     >
-                                        <Plus size={14} />
-                                        Create New Trip
+                                        <Plus size={16} />
+                                        <span>Create New Trip</span>
                                     </button>
                                 </div>
                             </div>
@@ -398,7 +398,7 @@ const ExpenseTracker = () => {
 
                         {/* Backdrop to close */}
                         {isTripDropdownOpen && (
-                            <div className="fixed inset-0 z-40" onClick={() => setIsTripDropdownOpen(false)} />
+                            <div className="fixed inset-0 z-[90]" onClick={() => setIsTripDropdownOpen(false)} />
                         )}
                     </div>
 
@@ -414,7 +414,7 @@ const ExpenseTracker = () => {
                 </div>
             </header>
             {/* Mobile View Toggle (Sub-header) */}
-            <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex justify-center sticky top-[65px] z-10">
+            <div className="md:hidden bg-white border-b border-gray-200 px-4 py-3 flex justify-center sticky top-[65px] z-[5]">
                 <div className="flex bg-gray-100 p-1 rounded-xl w-full max-w-xs">
                     <button
                         onClick={() => setView("dashboard")}

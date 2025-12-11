@@ -2,6 +2,7 @@ import axios from 'axios';
 
 // Create Axios Instance
 const api = axios.create({
+    baseURL: 'http://localhost:8000',
     headers: {
         'Content-Type': 'application/json',
     },
@@ -44,6 +45,7 @@ export const trips = {
     create: (data) => api.post('/trips/', data),
     join: (code) => api.post('/trips/join', { code }),
     getDetails: (id) => api.get(`/trips/${id}`),
+    delete: (id) => api.delete(`/trips/${id}`),
 };
 
 export const expenses = {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { Upload, Image as GalleryIcon, Folder, Settings, Home, Heart, LayoutGrid } from 'lucide-react';
+import { Upload, Image as GalleryIcon, Folder, Home, Heart } from 'lucide-react';
 
 import { usePhotos } from '../context/PhotoContext';
 
@@ -12,7 +12,6 @@ const Layout = ({ children }) => {
         { label: 'Gallery', path: '/galleriq/gallery', icon: GalleryIcon },
         { label: 'Favorites', path: '/galleriq/favorites', icon: Heart },
         { label: 'Collections', path: '/galleriq/collections', icon: Folder },
-        { label: 'Settings', path: '/settings', icon: Settings },
     ];
 
     return (
@@ -62,7 +61,7 @@ const Layout = ({ children }) => {
                             {currentUser?.name ? currentUser.name.charAt(0).toUpperCase() : 'G'}
                         </div>
                         <div className="flex flex-col">
-                            <span className="text-sm font-medium">{currentUser?.name || 'Guest User'}</span>
+                            <span className="text-sm font-medium">{currentUser?.name}</span>
                             <span className="text-xs text-gray-500">Free Member</span>
                         </div>
                     </div>

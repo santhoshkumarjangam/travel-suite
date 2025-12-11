@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePhotos } from '../context/PhotoContext';
 import { useNavigate } from 'react-router-dom';
-import { Camera, Mail, Lock, User, Phone } from 'lucide-react';
+import { Mail, Lock, User } from 'lucide-react';
 
 const LoginPage = () => {
     const { currentUser, registerUser, loginUser } = usePhotos();
@@ -11,60 +11,64 @@ const LoginPage = () => {
     const [isLogin, setIsLogin] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const [formData, setFormData] = useState({
-        name: '',
-        identifier: '', // Email or Phone
-        password: ''
-    });
+
+    // Controlled Inputs
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
 
     // If already logged in, redirect to home
     useEffect(() => {
         if (currentUser) {
-            navigate('/');
+            navigate('/', { replace: true });
         }
     }, [currentUser, navigate]);
 
-    // Auto-dismiss error
+    // Clear error on mode switch or input
     useEffect(() => {
-        if (error) {
-            const timer = setTimeout(() => setError(''), 5000);
-            return () => clearTimeout(timer);
+        setError('');
+    }, [isLogin, name, email, password]);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (isLoading) return;
+
+        setError('');
+        setIsLoading(true);
+
+        try {
+            if (isLogin) {
+                // Login Flow
+                if (!email.trim() || !password.trim()) {
+                    throw new Error("Please enter both email and password.");
+                }
+                await loginUser(email, password);
+                // Navigation happens in useEffect when currentUser updates
+            } else {
+                // Register Flow
+                if (!name.trim() || !email.trim() || !password.trim()) {
+                    throw new Error("All fields are required.");
+                }
+                await registerUser({ name, identifier: email, password });
+            }
+        } catch (err) {
+            console.error("Auth Error:", err);
+            let msg = "Authentication failed.";
+            if (err.response) {
+                // Backend Error
+                msg = err.response.data?.detail || `Server Error: ${err.response.status}`;
+            } else if (err.message) {
+                // JS Error
+                msg = err.message;
+            }
+            setError(msg);
+            setIsLoading(false); // Only stop loading on error, success waits for redirect
         }
-    }, [error]);
+    };
 
     const getInputClass = (val) => {
         return `w-full pl-10 pr-4 py-3 rounded-lg border focus:ring-2 focus:ring-black focus:border-transparent transition-all outline-none ${val ? 'border-gray-300 bg-white' : 'border-gray-200 bg-gray-50'
             }`;
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError('');
-        setIsLoading(true);
-        const { name, identifier, password } = formData;
-
-        try {
-            if (isLogin) {
-                // Login Mode
-                if (identifier.trim() && password.trim()) {
-                    await loginUser(identifier, password);
-                    navigate('/');
-                }
-            } else {
-                // Sign Up Mode
-                if (name.trim() && identifier.trim() && password.trim()) {
-                    await registerUser({ name, identifier, password });
-                    navigate('/');
-                }
-            }
-        } catch (err) {
-            console.error(err);
-            // Extract error message from backend if available
-            const msg = err.response?.data?.detail || "Authentication failed. Please check your credentials.";
-            setError(msg);
-        } finally {
-            setIsLoading(false);
-        }
     };
 
     return (
@@ -91,7 +95,7 @@ const LoginPage = () => {
                     </div>
                 )}
 
-                {/* Login Form */}
+                {/* Main Form */}
                 <div className="bg-white p-8 rounded-2xl border border-gray-100 shadow-2xl shadow-gray-100/50">
                     <form onSubmit={handleSubmit} className="space-y-5">
 
@@ -103,28 +107,27 @@ const LoginPage = () => {
                                     <User className="absolute left-3 top-3.5 text-gray-400" size={18} />
                                     <input
                                         type="text"
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                        value={name}
+                                        onChange={(e) => setName(e.target.value)}
                                         placeholder="Jane Doe"
-                                        className={getInputClass(formData.name)}
-                                        autoFocus={!isLogin}
+                                        className={getInputClass(name)}
+                                        autoFocus
                                     />
                                 </div>
                             </div>
                         )}
 
-                        {/* Email/Phone Field */}
+                        {/* Email Field */}
                         <div className="space-y-1">
-                            <label className="text-xs font-semibold uppercase text-gray-500 tracking-wider ml-1">Email or Phone</label>
+                            <label className="text-xs font-semibold uppercase text-gray-500 tracking-wider ml-1">Email</label>
                             <div className="relative">
                                 <Mail className="absolute left-3 top-3.5 text-gray-400" size={18} />
                                 <input
-                                    type="text"
-                                    value={formData.identifier}
-                                    onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
+                                    type="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
                                     placeholder="jane@example.com"
-                                    className={getInputClass(formData.identifier)}
-                                    autoFocus={isLogin}
+                                    className={getInputClass(email)}
                                 />
                             </div>
                         </div>
@@ -136,17 +139,17 @@ const LoginPage = () => {
                                 <Lock className="absolute left-3 top-3.5 text-gray-400" size={18} />
                                 <input
                                     type="password"
-                                    value={formData.password}
-                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
                                     placeholder="••••••••"
-                                    className={getInputClass(formData.password)}
+                                    className={getInputClass(password)}
                                 />
                             </div>
                         </div>
 
                         <button
                             type="submit"
-                            disabled={isLoading || (!isLogin && !formData.name) || !formData.identifier || !formData.password}
+                            disabled={isLoading}
                             className="btn-primary w-full py-4 text-lg justify-center shadow-lg shadow-black/5 mt-4 disabled:opacity-70 disabled:cursor-not-allowed"
                         >
                             {isLoading ? (

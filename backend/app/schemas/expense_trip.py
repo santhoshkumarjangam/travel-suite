@@ -3,16 +3,13 @@ from typing import Optional, List
 from uuid import UUID
 from datetime import datetime
 
-class TripBase(BaseModel):
+class ExpenseTripBase(BaseModel):
     name: str
     description: Optional[str] = None
-    cover_photo_url: Optional[str] = None
+    budget: Optional[float] = 0.0
 
-class TripCreate(TripBase):
+class ExpenseTripCreate(ExpenseTripBase):
     pass
-
-class TripJoin(BaseModel):
-    code: str
 
 class MemberInfo(BaseModel):
     user_id: UUID
@@ -24,9 +21,8 @@ class MemberInfo(BaseModel):
     class Config:
         from_attributes = True
 
-class TripResponse(TripBase):
+class ExpenseTripResponse(ExpenseTripBase):
     id: UUID
-    join_code: Optional[str]
     created_at: datetime
     created_by: UUID
     members: List[MemberInfo] = []

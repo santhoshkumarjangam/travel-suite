@@ -41,8 +41,24 @@ export const TripProvider = ({ children }) => {
         }
     };
 
-    const deleteTrip = (id) => {
-        setTrips(prev => prev.filter(t => t.id !== id));
+    const deleteTrip = async (id) => {
+        try {
+            await tripsApi.delete(id);
+            setTrips(prev => prev.filter(t => t.id !== id));
+            return { success: true };
+        } catch (error) {
+            console.error("Failed to delete trip:", error);
+            if (error.response?.status === 403) {
+                return {
+                    success: false,
+                    message: "You don't have permission to delete this collection. Only the collection owner can delete it."
+                };
+            }
+            return {
+                success: false,
+                message: "Failed to delete collection. Please try again."
+            };
+        }
     };
 
     const joinTrip = async (code) => {

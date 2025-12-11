@@ -40,7 +40,7 @@ const HubPage = () => {
                     </div>
                     <div className="flex items-center gap-3">
                         <div className="text-right hidden sm:block">
-                            <p className="text-sm font-medium text-gray-900">{currentUser?.name || 'Guest'}</p>
+                            <p className="text-sm font-medium text-gray-900">{currentUser?.name}</p>
                             <p className="text-xs text-gray-500">Member</p>
                         </div>
                         <button
@@ -60,7 +60,7 @@ const HubPage = () => {
             {/* Main Content */}
             <main className="flex-1 max-w-5xl mx-auto px-6 py-12 w-full">
                 <div className="mb-10">
-                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back, {currentUser?.name || 'Guest'}</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back, {currentUser?.name}</h1>
                     <p className="text-gray-500 text-lg">Your digital suite.</p>
                 </div>
 

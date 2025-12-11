@@ -8,7 +8,12 @@ from ..deps import get_current_user
 router = APIRouter(prefix="/users", tags=["Users"])
 
 @router.get("/me", response_model=UserResponse)
-def read_users_me(current_user: User = Depends(get_current_user)):
+def read_users_me(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
+    # Auto-heal: If name is missing/empty, default to email prefix
+    # Auto-heal: If name is missing/empty, default to email prefix
+    # Auto-heal: If name is missing/empty, default to email prefix
+    if not current_user.name or not current_user.name.strip():
+        current_user.name = current_user.email.split('@')[0]
     return current_user
 
 @router.put("/me", response_model=UserResponse)

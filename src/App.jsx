@@ -2,6 +2,8 @@ import { Routes, Route } from 'react-router-dom';
 import { TripProvider } from './context/TripContext';
 import { PhotoProvider } from './context/PhotoContext';
 import { ExpenseProvider } from './context/ExpenseContext';
+import { ExpenseTripProvider } from './context/ExpenseTripContext';
+import { ToastProvider } from './context/ToastContext';
 import Layout from './components/Layout';
 import RequireAuth from './components/RequireAuth';
 import UploadPage from './pages/UploadPage';
@@ -16,80 +18,84 @@ import ExpenseTracker from './pages/ExpenseTracker';
 
 function App() {
   return (
-    <PhotoProvider>
-      <TripProvider>
-        <ExpenseProvider>
-          <Routes>
-            {/* Public Route */}
-            <Route path="/login" element={<LoginPage />} />
+    <ToastProvider>
+      <PhotoProvider>
+        <TripProvider>
+          <ExpenseTripProvider>
+            <ExpenseProvider>
+              <Routes>
+                {/* Public Route */}
+                <Route path="/login" element={<LoginPage />} />
 
-            {/* Hub Route */}
-            <Route path="/" element={
-              <RequireAuth>
-                <HubPage />
-              </RequireAuth>
-            } />
+                {/* Hub Route */}
+                <Route path="/" element={
+                  <RequireAuth>
+                    <HubPage />
+                  </RequireAuth>
+                } />
 
-            {/* Galleriq Routes */}
-            <Route path="/galleriq" element={
-              <RequireAuth>
-                <Layout>
-                  <UploadPage />
-                </Layout>
-              </RequireAuth>
-            } />
+                {/* Galleriq Routes */}
+                <Route path="/galleriq" element={
+                  <RequireAuth>
+                    <Layout>
+                      <UploadPage />
+                    </Layout>
+                  </RequireAuth>
+                } />
 
-            <Route path="/galleriq/gallery" element={
-              <RequireAuth>
-                <Layout>
-                  <GalleryPage />
-                </Layout>
-              </RequireAuth>
-            } />
+                <Route path="/galleriq/gallery" element={
+                  <RequireAuth>
+                    <Layout>
+                      <GalleryPage />
+                    </Layout>
+                  </RequireAuth>
+                } />
 
-            <Route path="/galleriq/collections" element={
-              <RequireAuth>
-                <Layout>
-                  <CollectionsPage />
-                </Layout>
-              </RequireAuth>
-            } />
+                <Route path="/galleriq/collections" element={
+                  <RequireAuth>
+                    <Layout>
+                      <CollectionsPage />
+                    </Layout>
+                  </RequireAuth>
+                } />
 
-            <Route path="/galleriq/collections/:id" element={
-              <RequireAuth>
-                <Layout>
-                  <CollectionDetailsPage />
-                </Layout>
-              </RequireAuth>
-            } />
+                <Route path="/galleriq/collections/:id" element={
+                  <RequireAuth>
+                    <Layout>
+                      <CollectionDetailsPage />
+                    </Layout>
+                  </RequireAuth>
+                } />
 
-            <Route path="/galleriq/favorites" element={
-              <RequireAuth>
-                <Layout>
-                  <FavoritesPage />
-                </Layout>
-              </RequireAuth>
-            } />
+                <Route path="/galleriq/favorites" element={
+                  <RequireAuth>
+                    <Layout>
+                      <FavoritesPage />
+                    </Layout>
+                  </RequireAuth>
+                } />
 
 
 
-            {/* Global Settings */}
-            <Route path="/settings" element={
-              <RequireAuth>
-                <SettingsPage />
-              </RequireAuth>
-            } />
+                {/* Global Settings */}
+                <Route path="/settings" element={
+                  <RequireAuth>
+                    <SettingsPage />
+                  </RequireAuth>
+                } />
 
-            {/* Expense Tracker Route */}
-            <Route path="/economiq" element={
-              <RequireAuth>
-                <ExpenseTracker />
-              </RequireAuth>
-            } />
-          </Routes>
-        </ExpenseProvider>
-      </TripProvider>
-    </PhotoProvider>
+                {/* Expense Tracker Route */}
+                <Route path="/economiq" element={
+                  <RequireAuth>
+                    <ExpenseTracker />
+                  </RequireAuth>
+                } />
+              </Routes>
+            </ExpenseProvider>
+          </ExpenseTripProvider>
+        </TripProvider>
+      </PhotoProvider>
+    </ToastProvider>
   );
 }
 

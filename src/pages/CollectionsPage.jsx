@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { usePhotos } from '../context/PhotoContext';
 import { useTrips } from '../context/TripContext';
+import { useToast } from '../context/ToastContext';
 import { Plus, Hash, ArrowRight, Trash2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
@@ -8,6 +9,7 @@ import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 const CollectionsPage = () => {
     const { currentUser, photos } = usePhotos();
     const { trips: collections, addTrip: createCollection, deleteTrip: deleteCollection, joinTrip: joinCollection } = useTrips();
+    const toast = useToast();
     const navigate = useNavigate();
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newCollectionName, setNewCollectionName] = useState('');
@@ -22,23 +24,32 @@ const CollectionsPage = () => {
         return <div className="p-8 text-center text-gray-500">Loading collections...</div>;
     }
 
-    const createdByMe = collections.filter(c => c.creatorId === currentUser?.id);
-    const joinedByMe = collections.filter(c => c.creatorId !== currentUser?.id && c.members?.includes(currentUser?.id));
+    // DEBUG: Showing ALL collections to debug visibility
+    const createdByMe = collections;
+    const joinedByMe = [];
 
-    const handleCreate = (e) => {
+    const handleCreate = async (e) => {
         e.preventDefault();
+        console.log('handleCreate called with name:', newCollectionName);
         if (newCollectionName.trim()) {
-            // Pass currentUser.id as creator
-            createCollection(newCollectionName, null, currentUser?.id);
-            setNewCollectionName('');
-            setShowCreateModal(false);
+            try {
+                console.log('Calling createCollection...');
+                const result = await createCollection(newCollectionName, null);
+                console.log('createCollection returned:', result);
+                setNewCollectionName('');
+                setShowCreateModal(false);
+                console.log('Modal closed successfully');
+            } catch (error) {
+                console.error('Failed to create collection:', error);
+                toast.error('Failed to create collection. Please try again.');
+            }
         }
     };
 
-    const handleJoin = (e) => {
+    const handleJoin = async (e) => {
         e.preventDefault();
         if (joinCode.length === 6) {
-            const success = joinCollection(joinCode, currentUser?.id);
+            const success = await joinCollection(joinCode);
             if (success) {
                 setJoinCode('');
                 setJoinError('');
@@ -53,11 +64,17 @@ const CollectionsPage = () => {
         setDeleteModalOpen(true);
     };
 
-    const executeDelete = () => {
+    const executeDelete = async () => {
         if (collectionToDelete) {
-            deleteCollection(collectionToDelete.id);
-            setCollectionToDelete(null);
-            setDeleteModalOpen(false); // Close modal after deletion
+            const result = await deleteCollection(collectionToDelete.id);
+            if (result.success) {
+                setCollectionToDelete(null);
+                setDeleteModalOpen(false);
+                toast.success('Collection deleted successfully');
+            } else {
+                toast.error(result.message);
+                setDeleteModalOpen(false);
+            }
         }
     };
 
@@ -67,6 +84,7 @@ const CollectionsPage = () => {
                 <div>
                     <h1 className="text-2xl font-semibold text-gray-900">Collections</h1>
                     <p className="text-gray-500 mt-1">Shared adventures & albums.</p>
+                    {/* Visual Debug Removed */}
                 </div>
 
                 {/* Join Code Input */}
@@ -108,6 +126,8 @@ const CollectionsPage = () => {
                     {/* My Collections Grid */}
                     {createdByMe.map(collection => {
                         const count = photos.filter(p => p.collectionId === collection.id).length;
+                        const isJoined = collection.created_by !== currentUser?.id;
+
                         return (
                             <div
                                 key={collection.id}
@@ -124,19 +144,29 @@ const CollectionsPage = () => {
                                     </div>
 
                                     <div className="absolute top-3 left-3 bg-black/50 backdrop-blur-md text-white text-[10px] font-mono px-2 py-1 rounded">
-                                        {collection.code}
+                                        {collection.join_code}
                                     </div>
 
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            confirmDelete(collection);
-                                        }}
-                                        className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-red-50 text-gray-400 hover:text-red-600 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm"
-                                        title="Delete Collection"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
+                                    {/* Joined Badge */}
+                                    {isJoined && (
+                                        <div className="absolute top-3 right-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-md">
+                                            Joined
+                                        </div>
+                                    )}
+
+                                    {/* Delete button only for created collections */}
+                                    {!isJoined && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                confirmDelete(collection);
+                                            }}
+                                            className="absolute top-3 right-3 p-2 bg-white/90 hover:bg-red-50 text-gray-400 hover:text-red-600 rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-sm"
+                                            title="Delete Collection"
+                                        >
+                                            <Trash2 size={16} />
+                                        </button>
+                                    )}
                                 </div>
                                 <div className="p-4 flex-1 flex flex-col justify-center">
                                     <h3 className="font-semibold text-gray-900 truncate">{collection.name}</h3>

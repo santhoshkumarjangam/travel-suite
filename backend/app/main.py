@@ -4,7 +4,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
-from .routers import auth, trips, expenses, media, users
+from .routers import auth, trips, expenses, media, users, expense_trips
 
 # Auto-create tables (Dev only)
 Base.metadata.create_all(bind=engine)
@@ -22,6 +22,7 @@ app.add_middleware(
 
 app.include_router(auth.router)
 app.include_router(trips.router)
+app.include_router(expense_trips.router)
 app.include_router(expenses.router)
 app.include_router(media.router)
 app.include_router(users.router)

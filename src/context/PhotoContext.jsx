@@ -11,10 +11,31 @@ export const PhotoProvider = ({ children }) => {
     const [photos, setPhotos] = useState([]);
 
     // User Identity
-    const [currentUser, setCurrentUser] = useState(() => {
-        const saved = sessionStorage.getItem('photoApp_user');
-        return saved ? JSON.parse(saved) : null;
-    });
+    const [currentUser, setCurrentUser] = useState(null);
+    const [isLoading, setIsLoading] = useState(true);
+
+    // Strict Backend Sync: Fetch profile on mount if token exists
+    useEffect(() => {
+        const initAuth = async () => {
+            const token = sessionStorage.getItem('token');
+            if (token) {
+                try {
+                    const profile = await users.getProfile();
+                    const user = profile.data;
+                    if (!user.name) user.name = user.email ? user.email.split('@')[0] : 'Member';
+                    setCurrentUser(user);
+                } catch (e) {
+                    console.error("Failed to fetch profile", e);
+                    // If fetch fails (e.g. 401), we should probably clear token
+                    if (e.response && e.response.status === 401) {
+                        sessionStorage.removeItem('token');
+                    }
+                }
+            }
+            setIsLoading(false);
+        };
+        initAuth();
+    }, []);
 
     const registerUser = async (userData) => {
         try {
@@ -35,14 +56,16 @@ export const PhotoProvider = ({ children }) => {
             sessionStorage.setItem('token', access_token);
 
             // Construct basic user object for UI (since backend didn't return full user)
-            const user = {
-                id: 'sub-from-token', // TODO: Decode JWT
-                name: userData.name,
-                email: userData.identifier
-            };
+            // Fetch real user details
+            const profile = await users.getProfile();
+            const user = profile.data;
+
+            // Client-side fallback just in case
+            if (!user.name) {
+                user.name = user.email ? user.email.split('@')[0] : 'Member';
+            }
 
             setCurrentUser(user);
-            sessionStorage.setItem('photoApp_user', JSON.stringify(user));
             return user;
         } catch (error) {
             console.error("Registration failed:", error);
@@ -56,14 +79,16 @@ export const PhotoProvider = ({ children }) => {
             const { access_token } = response.data;
             sessionStorage.setItem('token', access_token);
 
-            // Store basic dummy user for now until we have /users/me
-            const user = {
-                id: 'logged-in-user',
-                name: email.split('@')[0],
-                email: email
-            };
+            // Fetch real user details
+            const profile = await users.getProfile();
+            const user = profile.data;
+
+            // Client-side fallback just in case
+            if (!user.name) {
+                user.name = user.email ? user.email.split('@')[0] : 'Member';
+            }
+
             setCurrentUser(user);
-            sessionStorage.setItem('photoApp_user', JSON.stringify(user));
             return user;
         } catch (error) {
             console.error("Login failed:", error);
