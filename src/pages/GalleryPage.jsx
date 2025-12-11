@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom';
 import Lightbox from '../components/Lightbox';
 
 const GalleryPage = () => {
-    const { uploaders, getPhotosByUploader, currentUser, toggleFavorite, photos: allPhotos } = usePhotos();
+    const { uploaders, getPhotosByUploader, currentUser, toggleFavorite, photos: allPhotos, downloadPhoto } = usePhotos();
     const { trips: collections } = useTrips();
     const navigate = useNavigate();
 
@@ -18,15 +18,10 @@ const GalleryPage = () => {
     const [viewMode, setViewMode] = useState('folders'); // 'folders' | 'photos'
     const [lightboxIndex, setLightboxIndex] = useState(-1);
 
-    // Download handler
+    // Download handler - uses backend endpoint
     const handleDownload = (e, photo) => {
         e.stopPropagation();
-        const link = document.createElement('a');
-        link.href = photo.previewUrl;
-        link.download = photo.name;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        downloadPhoto(photo.id);
     };
 
     // Filter collections: Show collections user created or is a member of

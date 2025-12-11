@@ -19,6 +19,7 @@ class Trip(Base):
     # Relationships
     members = relationship("TripMember", back_populates="trip", cascade="all, delete-orphan")
     photos = relationship("Photo", back_populates="trip", cascade="all, delete-orphan")
+    media = relationship("Media", back_populates="trip", cascade="all, delete-orphan")
 
 class TripMember(Base):
     __tablename__ = "trip_members"

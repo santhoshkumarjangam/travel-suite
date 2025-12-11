@@ -20,11 +20,17 @@ class PhotoResponse(BaseModel):
     trip_id: Optional[UUID]
     uploader_id: UUID
     public_url: str
+    thumbnail_url: Optional[str] = None
+    filename: str
     media_type: str = "image"
     mime_type: Optional[str] = "image/jpeg"
+    size_bytes: int
     is_favorite: bool
     created_at: datetime
-    # We can join uploader name if needed, but for now ID is fine or we fetch separately.
-
+    
     class Config:
         from_attributes = True
+
+class MediaUpdate(BaseModel):
+    """Schema for updating media."""
+    is_favorite: Optional[bool] = None

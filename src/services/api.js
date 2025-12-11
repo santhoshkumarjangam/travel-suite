@@ -62,22 +62,42 @@ export const users = {
 };
 
 export const media = {
-    getUploadUrl: (filename, contentType, size, tripId = null) =>
-        api.post('/media/upload-url', {
-            filename,
-            content_type: contentType,
-            size_bytes: size,
-            trip_id: tripId
-        }),
-    // Helper to upload to GCS directly (PUT)
-    uploadFile: async (url, file) => {
-        return axios.put(url, file, {
+    // Direct upload to GCS via backend
+    upload: async (file, tripId = null) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        if (tripId) {
+            formData.append('trip_id', tripId);
+        }
+
+        return api.post('/media/upload', formData, {
             headers: {
-                'Content-Type': file.type,
-            }
+                'Content-Type': 'multipart/form-data',
+            },
         });
     },
+
+    // Get all media for a trip
     getByTrip: (tripId) => api.get(`/media/trip/${tripId}`),
+
+    // Toggle favorite
+    toggleFavorite: (mediaId, isFavorite) =>
+        api.patch(`/media/${mediaId}`, { is_favorite: isFavorite }),
+
+    // Delete media
+    delete: (mediaId) => api.delete(`/media/${mediaId}`),
+
+    // Download media
+    download: (mediaId) => {
+        const token = sessionStorage.getItem('token');
+        const url = `${api.defaults.baseURL}/media/${mediaId}/download`;
+
+        // Open in new tab to trigger download
+        window.open(`${url}?token=${token}`, '_blank');
+    },
+
+    // Get download URLs for all trip media
+    getTripDownloadUrls: (tripId) => api.get(`/media/trip/${tripId}/download-all`),
 };
 
 export default api;

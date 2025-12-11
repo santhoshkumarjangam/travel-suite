@@ -1,6 +1,7 @@
 from sqlalchemy import Column, String, Integer, DateTime
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 import uuid
 from ..database import Base
 
@@ -13,3 +14,6 @@ class User(Base):
     name = Column(String, nullable=False)
     profile_pic_url = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    # Relationships
+    media = relationship("Media", back_populates="user", cascade="all, delete-orphan")

@@ -129,18 +129,44 @@ export const PhotoProvider = ({ children }) => {
         }
     };
 
-    const deletePhoto = (photoId) => {
-        setPhotos(prev => prev.filter(p => p.id !== photoId));
+    const deletePhoto = async (photoId) => {
+        try {
+            // Delete from backend/GCS
+            await media.delete(photoId);
+            // Update local state
+            setPhotos(prev => prev.filter(p => p.id !== photoId));
+        } catch (error) {
+            console.error("Failed to delete photo", error);
+            throw error;
+        }
     };
 
     const deletePhotos = (photoIds) => {
-        setPhotos(prev => prev.filter(p => !photoIds.includes(p.id)));
+        // Batch delete - call delete for each
+        Promise.all(photoIds.map(id => deletePhoto(id)))
+            .catch(error => console.error("Batch delete failed", error));
     };
 
-    const toggleFavorite = (photoId) => {
+    const toggleFavorite = async (photoId) => {
+        // Optimistic update
         setPhotos(prev => prev.map(p =>
             p.id === photoId ? { ...p, isFavorite: !p.isFavorite } : p
         ));
+
+        try {
+            // Find current state
+            const photo = photos.find(p => p.id === photoId);
+            if (photo) {
+                // Update backend
+                await media.toggleFavorite(photoId, !photo.isFavorite);
+            }
+        } catch (error) {
+            console.error("Failed to toggle favorite", error);
+            // Revert optimistic update
+            setPhotos(prev => prev.map(p =>
+                p.id === photoId ? { ...p, isFavorite: !p.isFavorite } : p
+            ));
+        }
     };
 
     const bulkToggleFavorite = (photoIds, shouldFavorite) => {
@@ -186,11 +212,13 @@ export const PhotoProvider = ({ children }) => {
 
     const addPhotos = async (uploaderName, newFiles, collectionId = null) => {
         const timestamp = new Date().toISOString();
+        const BATCH_SIZE = 5; // Upload 5 files at a time for optimal performance
 
         // Ensure newFiles is an array (safely handle FileList)
         const filesArray = Array.isArray(newFiles) ? newFiles : Array.from(newFiles);
 
-        const processedFilesPromises = filesArray.map(async (file) => {
+        // Helper function to process a single file
+        const processFile = async (file) => {
             let fileToProcess = file;
 
             // Check if HEIC
@@ -215,46 +243,50 @@ export const PhotoProvider = ({ children }) => {
                 }
             }
 
-            // Upload to Backend/GCS
+            // Upload directly to GCS via backend
             try {
-                // 1. Get Upload URL
-                const response = await media.getUploadUrl(
-                    fileToProcess.name,
-                    fileToProcess.type,
-                    fileToProcess.size,
-                    collectionId
-                );
+                const response = await media.upload(fileToProcess, collectionId);
+                const photoData = response.data;
 
-                const { upload_url, public_url, photo_id } = response.data;
-
-                // 2. Upload File to GCS
-                await media.uploadFile(upload_url, fileToProcess);
-
-                // 3. Return Photo Object (Optimistic + Real URL)
+                // Return photo object with GCS data
                 return {
-                    id: photo_id,
+                    id: photoData.id,
                     uploader: uploaderName,
-                    collectionId,
+                    collectionId: photoData.trip_id,
                     file: fileToProcess,
-                    previewUrl: public_url,
-                    timestamp: timestamp,
+                    previewUrl: photoData.public_url,
+                    timestamp: photoData.created_at || timestamp,
                     description: '',
-                    name: fileToProcess.name,
-                    size: fileToProcess.size,
-                    type: fileToProcess.type,
-                    isFavorite: false
+                    name: photoData.filename,
+                    size: photoData.size_bytes,
+                    type: photoData.mime_type,
+                    isFavorite: photoData.is_favorite
                 };
             } catch (error) {
                 console.error("Upload failed for", file.name, error);
                 return null; // Skip failed uploads
             }
-        });
+        };
 
-        const newPhotos = (await Promise.all(processedFilesPromises)).filter(p => p !== null);
-        setPhotos(prev => [...prev, ...newPhotos]);
+        // Process files in batches for parallel uploads
+        const allPhotos = [];
+        for (let i = 0; i < filesArray.length; i += BATCH_SIZE) {
+            const batch = filesArray.slice(i, i + BATCH_SIZE);
+            console.log(`Uploading batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(filesArray.length / BATCH_SIZE)} (${batch.length} files)`);
 
-        // Note: Trip cover photo updating is now handled by usage, or could be exposed in TripContext if needed.
-        // For now, we just add the photos.
+            // Process batch in parallel
+            const batchResults = await Promise.all(batch.map(processFile));
+            const successfulUploads = batchResults.filter(p => p !== null);
+
+            // Add successful uploads to state immediately (progressive loading)
+            if (successfulUploads.length > 0) {
+                setPhotos(prev => [...prev, ...successfulUploads]);
+                allPhotos.push(...successfulUploads);
+            }
+        }
+
+        console.log(`✅ Upload complete: ${allPhotos.length}/${filesArray.length} files uploaded successfully`);
+        return allPhotos; // Return all uploaded photos
     };
 
     const getCollectionById = (id) => {
@@ -268,6 +300,10 @@ export const PhotoProvider = ({ children }) => {
 
     const getPhotosByUploader = (uploaderName) => {
         return photos.filter(p => p.uploader === uploaderName);
+    };
+
+    const downloadPhoto = (photoId) => {
+        media.download(photoId);
     };
 
     return (
@@ -288,6 +324,7 @@ export const PhotoProvider = ({ children }) => {
             toggleFavorite,
             bulkToggleFavorite,
             loadPhotos,
+            downloadPhoto,
         }}>
             {children}
         </PhotoContext.Provider>

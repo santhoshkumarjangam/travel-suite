@@ -6,6 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from .database import engine, Base
 from .routers import auth, trips, expenses, media, users, expense_trips
 
+# Import all models so they're registered with Base
+from .models.user import User
+from .models.trip import Trip
+from .models.expense import Expense
+from .models.media import Media  # Import Media model for auto-creation
+
 # Auto-create tables (Dev only)
 Base.metadata.create_all(bind=engine)
 

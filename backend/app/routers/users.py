@@ -4,6 +4,7 @@ from ..database import get_db
 from ..models.user import User
 from ..schemas.user import UserResponse, UserUpdate
 from ..deps import get_current_user
+from ..services.gcs import get_gcs_service
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -32,8 +33,23 @@ def update_user_me(user_update: UserUpdate, db: Session = Depends(get_db), curre
 
 @router.delete("/me", status_code=status.HTTP_204_NO_CONTENT)
 def delete_user_me(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
-    # TODO: Add logic to cleanup resources (photos in GCS, cascade delete trips?)
-    # For MVP: PostgreSQL Cascade should handle DB relations, GCS might be orphaned.
+    """
+    Delete user account and all associated data.
+    
+    This will:
+    1. Delete all photos from GCS
+    2. Delete user from database (cascade deletes trips, expenses, etc.)
+    """
+    # 1. Delete all user photos from GCS
+    try:
+        gcs_service = get_gcs_service()
+        deleted_count = gcs_service.delete_user_folder(str(current_user.id))
+        print(f"Deleted {deleted_count} files from GCS for user {current_user.id}")
+    except Exception as e:
+        print(f"Warning: Failed to delete GCS files for user {current_user.id}: {e}")
+        # Continue with account deletion even if GCS cleanup fails
+    
+    # 2. Delete user from database (PostgreSQL cascade handles related records)
     db.delete(current_user)
     db.commit()
     return
