@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Camera, CreditCard, ArrowRight, User, Settings as SettingsIcon, LogOut, ChevronDown } from 'lucide-react';
+import { Camera, CreditCard, Map, ArrowRight, User, Settings as SettingsIcon, LogOut, ChevronDown } from 'lucide-react';
 import { usePhotos } from '../context/PhotoContext';
 
 const HubPage = () => {
@@ -47,6 +47,16 @@ const HubPage = () => {
             color: 'bg-emerald-600',
             gradient: 'from-emerald-500 to-teal-500',
             logo: '/economiq-logo.png'
+        },
+        {
+            id: 'itinerary',
+            name: 'Tripify',
+            description: 'Plan your trips with day-by-day itineraries.',
+            icon: Map,
+            path: '/itinerary',
+            color: 'bg-teal-600',
+            gradient: 'from-teal-500 to-cyan-500',
+            logo: '/tripify-logo.png'
         }
     ];
 
