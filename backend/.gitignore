@@ -1,0 +1,11 @@
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+.DS_Store
+*.json # Ideally verify this doesn't block legitimate JSONs, but blocks keys. 
+# Better to be specific for keys:
+service-account-key.json
+gcp-key.json
+__pycache__
