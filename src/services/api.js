@@ -63,7 +63,7 @@ export const users = {
 
 export const media = {
     // Direct upload to GCS via backend
-    upload: async (file, tripId = null) => {
+    upload: async (file, tripId = null, onProgress) => {
         const formData = new FormData();
         formData.append('file', file);
         if (tripId) {
@@ -74,15 +74,27 @@ export const media = {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
+            onUploadProgress: (progressEvent) => {
+                if (onProgress) {
+                    const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+                    onProgress(percentCompleted);
+                }
+            }
         });
     },
 
-    // Get all media for a trip
-    getByTrip: (tripId) => api.get(`/media/trip/${tripId}`),
+    // Get all media for a trip (paginated)
+    getByTrip: (tripId, page = 1, limit = 50) => api.get(`/media/trip/${tripId}`, { params: { page, limit } }),
+
+    // Get favorite media (paginated)
+    getFavorites: (page = 1, limit = 50) => api.get(`/media/favorites`, { params: { page, limit } }),
 
     // Toggle favorite
     toggleFavorite: (mediaId, isFavorite) =>
         api.patch(`/media/${mediaId}`, { is_favorite: isFavorite }),
+
+    // Get download URL (backend proxy)
+    getDownloadUrl: (mediaId) => `${api.defaults.baseURL}/media/${mediaId}/download`,
 
     // Delete media
     delete: (mediaId) => api.delete(`/media/${mediaId}`),

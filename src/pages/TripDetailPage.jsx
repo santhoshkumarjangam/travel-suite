@@ -652,22 +652,6 @@ const AddActivityModal = ({ dayId, activityCount, onClose, onAdd }) => {
         order_index: activityCount
     });
     const [loading, setLoading] = useState(false);
-    const [selectedFile, setSelectedFile] = useState(null);
-    const [previewUrl, setPreviewUrl] = useState(null);
-    const fileInputRef = useRef(null);
-
-    const handleFileSelect = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            setSelectedFile(file);
-            // Create preview URL
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setPreviewUrl(reader.result);
-            };
-            reader.readAsDataURL(file);
-        }
-    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -693,16 +677,7 @@ const AddActivityModal = ({ dayId, activityCount, onClose, onAdd }) => {
                 maps_link: formData.maps_link || null,
                 cost: formData.cost ? parseFloat(formData.cost) : null
             };
-            const response = await onAdd(dayId, dataToSubmit);
-
-            // Upload photo if selected
-            if (selectedFile && response?.id) {
-                try {
-                    await itinerary.uploadActivityPhoto(response.id, selectedFile);
-                } catch (error) {
-                    console.error('Failed to upload photo', error);
-                }
-            }
+            await onAdd(dayId, dataToSubmit);
 
             onClose();
         } catch (error) {
@@ -723,45 +698,6 @@ const AddActivityModal = ({ dayId, activityCount, onClose, onAdd }) => {
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-4">
-                    {/* Photo Upload Section */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Activity Photo (Optional)</label>
-                        {previewUrl ? (
-                            <div className="relative">
-                                <img
-                                    src={previewUrl}
-                                    alt="Preview"
-                                    className="w-full h-48 object-cover rounded-lg"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => {
-                                        setSelectedFile(null);
-                                        setPreviewUrl(null);
-                                    }}
-                                    className="absolute top-2 right-2 p-1.5 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
-                                >
-                                    <X size={16} />
-                                </button>
-                            </div>
-                        ) : (
-                            <button
-                                type="button"
-                                onClick={() => fileInputRef.current?.click()}
-                                className="w-full h-32 border-2 border-dashed border-gray-300 rounded-lg hover:border-teal-500 transition-colors flex flex-col items-center justify-center gap-2 text-gray-500 hover:text-teal-600"
-                            >
-                                <ImageIcon size={32} />
-                                <span className="text-sm font-medium">Click to upload photo</span>
-                            </button>
-                        )}
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileSelect}
-                            className="hidden"
-                        />
-                    </div>
 
                     <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1">Activity Name *</label>

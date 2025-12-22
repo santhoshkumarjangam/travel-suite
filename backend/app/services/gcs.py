@@ -9,6 +9,7 @@ This module handles all interactions with GCS including:
 
 import os
 import uuid
+import datetime
 from typing import Optional, BinaryIO
 from google.cloud import storage
 from google.oauth2 import service_account
@@ -194,6 +195,46 @@ class GCSService:
             Public HTTPS URL
         """
         return f"https://storage.googleapis.com/{GCS_BUCKET_NAME}/{blob_path}"
+
+    def generate_signed_url(self, blob_path: str, filename: str, expiration_mins: int = 15) -> str:
+        """
+        Generate a signed URL for a blob with content disposition.
+        
+        Args:
+            blob_path: Relative path in bucket
+            filename: Filename for the download
+            expiration_mins: URL expiration in minutes
+        
+        Returns:
+            Signed URL
+        """
+        try:
+            blob = self.bucket.blob(blob_path)
+            
+            url = blob.generate_signed_url(
+                version="v4",
+                expiration=datetime.timedelta(minutes=expiration_mins),
+                method="GET",
+                response_disposition=f'attachment; filename="{filename}"'
+            )
+            return url
+        except Exception as e:
+            print(f"Error generating signed URL: {e}")
+            # Fallback to public URL if signing fails (e.g. no credentials)
+            return self.get_public_url(blob_path)
+
+    def get_file_stream(self, blob_path: str):
+        """
+        Get a stream of the file content.
+        
+        Args:
+            blob_path: Relative path in bucket
+        
+        Returns:
+            File-like object
+        """
+        blob = self.bucket.blob(blob_path)
+        return blob.open("rb")
 
 
 # Singleton instance

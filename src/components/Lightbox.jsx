@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
 import { usePhotos } from '../context/PhotoContext';
-import { X, ChevronLeft, ChevronRight, Download, Trash2 } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
+import { X, ChevronLeft, ChevronRight, Heart } from 'lucide-react';
 
-const Lightbox = ({ photo, onClose, onNext, onPrev, hasNext, hasPrev }) => {
-    const { deletePhoto } = usePhotos();
+const Lightbox = ({ photo, onClose, onNext, onPrev, hasNext, hasPrev, onToggleFavorite }) => {
+    // const { deletePhoto, downloadPhoto } = usePhotos(); // Unused
+    // const toast = useToast(); // Unused if we only toggle favorite via prop
 
     // Handle Keyboard Events
     useEffect(() => {
@@ -17,24 +19,6 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, hasNext, hasPrev }) => {
         return () => window.removeEventListener('keydown', handleKeyDown);
     }, [onClose, onNext, onPrev, hasNext, hasPrev]);
 
-    const handleDownload = (e) => {
-        e.stopPropagation();
-        const link = document.createElement('a');
-        link.href = photo.previewUrl;
-        link.download = photo.name;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-    };
-
-    const handleDelete = (e) => {
-        e.stopPropagation();
-        if (window.confirm('Are you sure you want to delete this photo?')) {
-            deletePhoto(photo.id);
-            onClose();
-        }
-    };
-
     if (!photo) return null;
 
     return (
@@ -42,18 +26,16 @@ const Lightbox = ({ photo, onClose, onNext, onPrev, hasNext, hasPrev }) => {
             {/* Toolbar */}
             <div className="absolute top-4 right-4 z-50 flex items-center gap-4">
                 <button
-                    onClick={handleDelete}
+                    onClick={async (e) => {
+                        e.stopPropagation();
+                        if (onToggleFavorite) {
+                            await onToggleFavorite(photo.id);
+                        }
+                    }}
                     className="text-white/70 hover:text-red-500 p-2 transition-colors rounded-full hover:bg-white/10"
-                    title="Delete Photo"
+                    title={photo.isFavorite ? "Remove from Favorites" : "Add to Favorites"}
                 >
-                    <Trash2 size={24} />
-                </button>
-                <button
-                    onClick={handleDownload}
-                    className="text-white/70 hover:text-white p-2 transition-colors rounded-full hover:bg-white/10"
-                    title="Download"
-                >
-                    <Download size={24} />
+                    <Heart size={24} className={photo.isFavorite ? "fill-red-500 text-red-500" : "text-white"} />
                 </button>
                 <button
                     onClick={onClose}

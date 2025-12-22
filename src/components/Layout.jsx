@@ -9,7 +9,6 @@ const Layout = ({ children }) => {
     const navItems = [
         { label: 'Home', path: '/', icon: Home },
         { label: 'Upload', path: '/galleriq', icon: Upload },
-        { label: 'Gallery', path: '/galleriq/gallery', icon: GalleryIcon },
         { label: 'Favorites', path: '/galleriq/favorites', icon: Heart },
         { label: 'Collections', path: '/galleriq/collections', icon: Folder },
     ];

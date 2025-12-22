@@ -8,13 +8,18 @@ import DeleteConfirmationModal from '../components/DeleteConfirmationModal';
 
 const CollectionsPage = () => {
     const { currentUser, photos } = usePhotos();
-    const { trips: collections, addTrip: createCollection, deleteTrip: deleteCollection, joinTrip: joinCollection } = useTrips();
+    const { trips: collections, addTrip: createCollection, deleteTrip: deleteCollection, joinTrip: joinCollection, refreshTrips } = useTrips();
     const toast = useToast();
     const navigate = useNavigate();
     const [showCreateModal, setShowCreateModal] = useState(false);
     const [newCollectionName, setNewCollectionName] = useState('');
     const [joinCode, setJoinCode] = useState('');
     const [joinError, setJoinError] = useState('');
+
+    // Refresh trips on mount to ensure cover photos are up to date
+    React.useEffect(() => {
+        refreshTrips();
+    }, []);
 
     // Delete Modal State
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -136,8 +141,8 @@ const CollectionsPage = () => {
                             >
                                 <div className="h-28 bg-gray-100 relative group/card">
                                     <div className="absolute inset-0 flex items-center justify-center text-gray-300">
-                                        {collection.cover ? (
-                                            <img src={collection.cover} alt="" className="w-full h-full object-cover" />
+                                        {collection.cover_photo_url ? (
+                                            <img src={collection.cover_photo_url} alt="" className="w-full h-full object-cover" />
                                         ) : (
                                             <span className="text-sm">No Cover</span>
                                         )}
@@ -196,8 +201,8 @@ const CollectionsPage = () => {
                                 >
                                     <div className="h-28 bg-gray-100 relative group/card">
                                         <div className="absolute inset-0 flex items-center justify-center text-gray-300">
-                                            {collection.cover ? (
-                                                <img src={collection.cover} alt="" className="w-full h-full object-cover" />
+                                            {collection.cover_photo_url ? (
+                                                <img src={collection.cover_photo_url} alt="" className="w-full h-full object-cover" />
                                             ) : (
                                                 <span className="text-sm">No Cover</span>
                                             )}

@@ -19,6 +19,7 @@ class PhotoResponse(BaseModel):
     id: UUID
     trip_id: Optional[UUID]
     uploader_id: UUID
+    uploader_name: Optional[str] = "Unknown"
     public_url: str
     thumbnail_url: Optional[str] = None
     filename: str
@@ -34,3 +35,12 @@ class PhotoResponse(BaseModel):
 class MediaUpdate(BaseModel):
     """Schema for updating media."""
     is_favorite: Optional[bool] = None
+
+from typing import List
+
+class PaginatedPhotoResponse(BaseModel):
+    items: List[PhotoResponse]
+    total: int
+    page: int
+    size: int
+    pages: int

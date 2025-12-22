@@ -141,10 +141,15 @@ export const PhotoProvider = ({ children }) => {
         }
     };
 
-    const deletePhotos = (photoIds) => {
+    const deletePhotos = async (photoIds) => {
         // Batch delete - call delete for each
-        Promise.all(photoIds.map(id => deletePhoto(id)))
-            .catch(error => console.error("Batch delete failed", error));
+        try {
+            await Promise.all(photoIds.map(id => deletePhoto(id)));
+            return true;
+        } catch (error) {
+            console.error("Batch delete failed", error);
+            throw error;
+        }
     };
 
     const toggleFavorite = async (photoId) => {
@@ -169,13 +174,22 @@ export const PhotoProvider = ({ children }) => {
         }
     };
 
-    const bulkToggleFavorite = (photoIds, shouldFavorite) => {
-        setPhotos(prev => prev.map(photo => {
-            if (photoIds.includes(photo.id)) {
-                return { ...photo, isFavorite: shouldFavorite };
-            }
-            return photo;
-        }));
+    const bulkToggleFavorite = async (photoIds, shouldFavorite) => {
+        try {
+            await Promise.all(photoIds.map(id => media.toggleFavorite(id, shouldFavorite)));
+
+            // Update global state
+            setPhotos(prev => prev.map(photo => {
+                if (photoIds.includes(photo.id)) {
+                    return { ...photo, isFavorite: shouldFavorite };
+                }
+                return photo;
+            }));
+            return true;
+        } catch (error) {
+            console.error("Failed to bulk toggle favorite", error);
+            return false;
+        }
     };
 
     const uploaders = useMemo(() => {
@@ -186,10 +200,14 @@ export const PhotoProvider = ({ children }) => {
         if (!collectionId) return;
         try {
             const response = await media.getByTrip(collectionId);
+            // Handle Paginated Response (backend returns { items: [], ... })
+            // If response.data is array (legacy/fallback), use it. If object with items, use items.
+            const dataItems = Array.isArray(response.data) ? response.data : (response.data.items || []);
+
             // Map backend fields to frontend
-            const loaded = response.data.map(p => ({
+            const loaded = dataItems.map(p => ({
                 id: p.id,
-                uploader: 'Fetched User', // TODO: Resolve name from ID if needed
+                uploader: p.uploader_name || 'Fetched User',
                 collectionId: p.trip_id,
                 file: null, // No file object for fetched
                 previewUrl: p.public_url,
@@ -210,83 +228,101 @@ export const PhotoProvider = ({ children }) => {
         }
     };
 
-    const addPhotos = async (uploaderName, newFiles, collectionId = null) => {
+    const uploadPhoto = async (file, collectionId, onProgress) => {
         const timestamp = new Date().toISOString();
-        const BATCH_SIZE = 5; // Upload 5 files at a time for optimal performance
+        let fileToProcess = file;
 
-        // Ensure newFiles is an array (safely handle FileList)
-        const filesArray = Array.isArray(newFiles) ? newFiles : Array.from(newFiles);
-
-        // Helper function to process a single file
-        const processFile = async (file) => {
-            let fileToProcess = file;
-
-            // Check if HEIC
-            if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
-                try {
-                    const convertedBlob = await heic2any({
-                        blob: file,
-                        toType: 'image/jpeg',
-                        quality: 0.8
-                    });
-
-                    // Handle case where it returns an array of blobs
-                    const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
-
-                    fileToProcess = new File(
-                        [blob],
-                        file.name.replace(/\.heic$/i, '.jpg'),
-                        { type: 'image/jpeg' }
-                    );
-                } catch (error) {
-                    console.error("HEIC conversion failed for", file.name, error);
-                }
-            }
-
-            // Upload directly to GCS via backend
+        // Check if HEIC
+        if (file.type === 'image/heic' || file.name.toLowerCase().endsWith('.heic')) {
             try {
-                const response = await media.upload(fileToProcess, collectionId);
-                const photoData = response.data;
+                const convertedBlob = await heic2any({
+                    blob: file,
+                    toType: 'image/jpeg',
+                    quality: 0.8
+                });
 
-                // Return photo object with GCS data
-                return {
-                    id: photoData.id,
-                    uploader: uploaderName,
-                    collectionId: photoData.trip_id,
-                    file: fileToProcess,
-                    previewUrl: photoData.public_url,
-                    timestamp: photoData.created_at || timestamp,
-                    description: '',
-                    name: photoData.filename,
-                    size: photoData.size_bytes,
-                    type: photoData.mime_type,
-                    isFavorite: photoData.is_favorite
-                };
+                // Handle case where it returns an array of blobs
+                const blob = Array.isArray(convertedBlob) ? convertedBlob[0] : convertedBlob;
+
+                fileToProcess = new File(
+                    [blob],
+                    file.name.replace(/\.heic$/i, '.jpg'),
+                    { type: 'image/jpeg' }
+                );
             } catch (error) {
-                console.error("Upload failed for", file.name, error);
-                return null; // Skip failed uploads
-            }
-        };
-
-        // Process files in batches for parallel uploads
-        const allPhotos = [];
-        for (let i = 0; i < filesArray.length; i += BATCH_SIZE) {
-            const batch = filesArray.slice(i, i + BATCH_SIZE);
-            console.log(`Uploading batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(filesArray.length / BATCH_SIZE)} (${batch.length} files)`);
-
-            // Process batch in parallel
-            const batchResults = await Promise.all(batch.map(processFile));
-            const successfulUploads = batchResults.filter(p => p !== null);
-
-            // Add successful uploads to state immediately (progressive loading)
-            if (successfulUploads.length > 0) {
-                setPhotos(prev => [...prev, ...successfulUploads]);
-                allPhotos.push(...successfulUploads);
+                console.error("HEIC conversion failed for", file.name, error);
             }
         }
 
-        console.log(`✅ Upload complete: ${allPhotos.length}/${filesArray.length} files uploaded successfully`);
-        return allPhotos; // Return all uploaded photos
+        // Upload directly to GCS via backend
+        try {
+            const formData = new FormData();
+            formData.append('file', fileToProcess);
+            if (collectionId) {
+                formData.append('trip_id', collectionId);
+            }
+
+            // We need to use raw Axios instance or modify api.upload to accept onUploadProgress
+            // Since api.upload is a wrapper, we'll bypass it or modify it. 
+            // Modifying api.upload in api.js is cleaner but let's see if we can just do it here temporarily or strictly.
+            // Actually `media.upload` uses `api.post` which supports config.
+
+            // Let's modify media.upload call signature here or in api.js?
+            // api.js change is better, but I can't edit it in this tool call easily if I want to keep context locally.
+            // Actually I can access `media.upload` source?
+            // Let's do a direct call here for maximum control if needed, OR update api.js later.
+            // Wait, I can pass a config object to `media.upload`?
+            // Checking api.js: `upload: async (file, tripId = null) => { ... return api.post(...) }`
+            // It doesn't accept config. I should update api.js first or use a workaround.
+            // Workaround: I'll use `media.upload` but I need to update api.js to support progress.
+            // Alternatively, I can just reimplement the axios call here using `api.post`.
+            // Yes, let's use `api.post` directly here for valid progress tracking without touching api.js yet.
+            // I need to import `api` instance? context imports `auth, media, users`. `media` uses `api` internally.
+            // I don't have access to `api` instance directly exported from `../services/api` in this file unless I import it.
+            // It imports `{ auth, media, users } from '../services/api'`.
+            // I'll update api.js in a separate step or just assume I can update `media.upload` later.
+            // FOR NOW: I will leave `uploadPhoto` calling `media.upload` but without progress, UNTIL I validly update api.js.
+            // Wait, I am in logic flow. I should update api.js first. 
+            // BUT I am forced to edit PhotoContext now.
+            // I will write the code to assume `media.upload` takes a 3rd arg `onProgress`.
+
+            const response = await media.upload(fileToProcess, collectionId, onProgress);
+            const photoData = response.data;
+
+            return {
+                id: photoData.id,
+                uploader: currentUser?.name || 'Unknown',
+                collectionId: photoData.trip_id,
+                file: fileToProcess,
+                previewUrl: photoData.public_url,
+                timestamp: photoData.created_at || timestamp,
+                description: '',
+                name: photoData.filename,
+                size: photoData.size_bytes,
+                type: photoData.mime_type,
+                isFavorite: photoData.is_favorite
+            };
+        } catch (error) {
+            console.error("Upload failed for", file.name, error);
+            throw error;
+        }
+    };
+
+    const addPhotos = async (uploaderName, newFiles, collectionId = null) => {
+        // Wrapper for backward compatibility or bulk usage without progress UI
+        const filesArray = Array.isArray(newFiles) ? newFiles : Array.from(newFiles);
+        const allPhotos = [];
+
+        for (const file of filesArray) {
+            try {
+                const photo = await uploadPhoto(file, collectionId);
+                allPhotos.push(photo);
+                setPhotos(prev => [...prev, photo]);
+            } catch (e) {
+                // Ignore individual failures in this bulk mode
+            }
+        }
+        return allPhotos;
     };
 
     const getCollectionById = (id) => {
@@ -325,6 +361,7 @@ export const PhotoProvider = ({ children }) => {
             bulkToggleFavorite,
             loadPhotos,
             downloadPhoto,
+            uploadPhoto,
         }}>
             {children}
         </PhotoContext.Provider>

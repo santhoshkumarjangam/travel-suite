@@ -8,7 +8,6 @@ import { ToastProvider } from './context/ToastContext';
 import Layout from './components/Layout';
 import RequireAuth from './components/RequireAuth';
 import UploadPage from './pages/UploadPage';
-import GalleryPage from './pages/GalleryPage';
 import CollectionsPage from './pages/CollectionsPage';
 import CollectionDetailsPage from './pages/CollectionDetailsPage';
 import FavoritesPage from './pages/FavoritesPage';
@@ -43,14 +42,6 @@ function App() {
                     <RequireAuth>
                       <Layout>
                         <UploadPage />
-                      </Layout>
-                    </RequireAuth>
-                  } />
-
-                  <Route path="/galleriq/gallery" element={
-                    <RequireAuth>
-                      <Layout>
-                        <GalleryPage />
                       </Layout>
                     </RequireAuth>
                   } />

@@ -11,20 +11,21 @@ export const TripProvider = ({ children }) => {
     const [trips, setTrips] = useState([]);
     const { currentUser } = usePhotos();
 
-    useEffect(() => {
-        const fetchTrips = async () => {
-            if (currentUser) {
-                try {
-                    const response = await tripsApi.getAll();
-                    setTrips(response.data);
-                } catch (error) {
-                    console.error("Failed to fetch trips", error);
-                }
-            } else {
-                setTrips([]);
+    const refreshTrips = async () => {
+        if (currentUser) {
+            try {
+                const response = await tripsApi.getAll();
+                setTrips(response.data);
+            } catch (error) {
+                console.error("Failed to fetch trips", error);
             }
-        };
-        fetchTrips();
+        } else {
+            setTrips([]);
+        }
+    };
+
+    useEffect(() => {
+        refreshTrips();
     }, [currentUser]);
 
 
@@ -84,7 +85,8 @@ export const TripProvider = ({ children }) => {
         addTrip,
         deleteTrip,
         joinTrip,
-        getTrip
+        getTrip,
+        refreshTrips
     };
 
     return (

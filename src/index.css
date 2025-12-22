@@ -154,10 +154,12 @@ body {
   color: var(--text-secondary);
   margin-top: 4px;
 }
+
 /* Globally Hide Scrollbars */
 ::-webkit-scrollbar {
   display: none;
 }
+
 * {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -165,10 +167,13 @@ body {
 
 /* Utility class for hiding scrollbars */
 .scrollbar-hide {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 .scrollbar-hide::-webkit-scrollbar {
-  display: none;  /* Chrome, Safari and Opera */
+  display: none;
+  /* Chrome, Safari and Opera */
 }
