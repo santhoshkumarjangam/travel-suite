@@ -6,10 +6,10 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: {
-      '/auth': 'http://localhost:8000',
-      '/trips': 'http://localhost:8000',
-      '/expenses': 'http://localhost:8000',
-      '/media': 'http://localhost:8000',
+      '/auth': 'https://travel-suite-api-595745089080.us-central1.run.app',
+      '/trips': 'https://travel-suite-api-595745089080.us-central1.run.app',
+      '/expenses': 'https://travel-suite-api-595745089080.us-central1.run.app',
+      '/media': 'https://travel-suite-api-595745089080.us-central1.run.app',
     }
   }
 })
