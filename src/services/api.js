@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // Create Axios Instance
 const api = axios.create({
-    baseURL: 'http://localhost:8000',
+    baseURL: 'https://travel-suite-api-595745089080.us-central1.run.app',
     headers: {
         'Content-Type': 'application/json',
     },
