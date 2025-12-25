@@ -77,7 +77,7 @@ const LoginPage = () => {
                 {/* Logo / Branding */}
                 <div className="flex flex-col items-center text-center">
                     <img
-                        src="/centriq-logo.png"
+                        src="centriq-logo.png"
                         alt="Centriq Logo"
                         className="w-20 h-20 rounded-2xl object-cover shadow-xl mb-6"
                     />

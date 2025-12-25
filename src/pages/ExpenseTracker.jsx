@@ -311,7 +311,7 @@ const ExpenseTracker = () => {
                         <span className="hidden md:inline font-medium text-gray-500 group-hover:text-black transition-colors">Home</span>
                     </NavLink>
                     <div className="flex items-center gap-2">
-                        <img src="/economiq-logo.png" alt="Economiq Logo" className="w-8 h-8 rounded-lg object-contain" />
+                        <img src="economiq-logo.png" alt="Economiq Logo" className="w-8 h-8 rounded-lg object-contain" />
                         <span className="font-bold text-xl tracking-tight text-gray-900">Economiq</span>
                     </div>
                 </div>

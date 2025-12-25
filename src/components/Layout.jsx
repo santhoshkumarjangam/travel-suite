@@ -18,7 +18,7 @@ const Layout = ({ children }) => {
             {/* Sidebar */}
             <aside className="sidebar flex flex-col p-6">
                 <div className="mb-10 flex items-center gap-3 px-2">
-                    <img src="/galleriq-logo.png" alt="Galleriq Logo" className="w-12 h-12 rounded-xl object-cover shadow-sm" />
+                    <img src="galleriq-logo.png" alt="Galleriq Logo" className="w-12 h-12 rounded-xl object-cover shadow-sm" />
                     <span className="font-bold text-xl tracking-tight">Galleriq</span>
                 </div>
 

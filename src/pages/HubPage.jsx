@@ -36,7 +36,7 @@ const HubPage = () => {
             path: '/galleriq',
             color: 'bg-blue-600',
             gradient: 'from-blue-500 to-cyan-500',
-            logo: '/galleriq-logo.png'
+            logo: 'galleriq-logo.png'
         },
         {
             id: 'expenses',
@@ -46,7 +46,7 @@ const HubPage = () => {
             path: '/economiq',
             color: 'bg-emerald-600',
             gradient: 'from-emerald-500 to-teal-500',
-            logo: '/economiq-logo.png'
+            logo: 'economiq-logo.png'
         },
         {
             id: 'itinerary',
@@ -56,7 +56,7 @@ const HubPage = () => {
             path: '/itinerary',
             color: 'bg-teal-600',
             gradient: 'from-teal-500 to-cyan-500',
-            logo: '/tripify-logo.png'
+            logo: 'tripify-logo.png'
         }
     ];
 
@@ -66,7 +66,7 @@ const HubPage = () => {
             <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
                 <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                        <img src="/centriq-logo.png" alt="Centriq" className="w-10 h-10 rounded-xl shadow-sm object-cover" />
+                        <img src="centriq-logo.png" alt="Centriq" className="w-10 h-10 rounded-xl shadow-sm object-cover" />
                         <span className="font-bold text-xl tracking-tight text-gray-900">Centriq</span>
                     </div>
                     <div className="flex items-center gap-3">

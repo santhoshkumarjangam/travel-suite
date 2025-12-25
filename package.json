@@ -7,8 +7,11 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
+  "homepage": "https://santhoshkumarjangam.github.io/travel-suite",
   "dependencies": {
     "@vitejs/plugin-react": "5.1.2",
     "axios": "^1.13.2",
